@@ -4,6 +4,7 @@
 namespace Microcharts
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using SkiaSharp;
@@ -63,9 +64,11 @@ namespace Microcharts
 
                 this.DrawBarAreas(canvas, points, itemSize, headerHeight);
                 this.DrawBars(canvas, points, itemSize, origin, headerHeight);
-                this.DrawPoints(canvas, points);
+                //this.DrawPoints(canvas, points);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
                 this.DrawFooter(canvas, labels, labelSizes, points, itemSize, height, footerHeight);
+                this.DrawMarkerView(canvas);
+
             }
         }
 
@@ -82,6 +85,7 @@ namespace Microcharts
             const float MinBarHeight = 4;
             if (points.Length > 0)
             {
+                rects = new List<SKRect>();
                 for (int i = 0; i < this.Entries.Count(); i++)
                 {
                     var entry = this.Entries.ElementAt(i);
@@ -106,6 +110,7 @@ namespace Microcharts
                         }
 
                         var rect = SKRect.Create(x, y, itemSize.Width, height);
+                        rects.Add(rect);
                         canvas.DrawRect(rect, paint);
                     }
                 }

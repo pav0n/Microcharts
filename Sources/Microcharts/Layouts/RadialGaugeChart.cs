@@ -4,6 +4,7 @@
 namespace Microcharts
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using SkiaSharp;
 
@@ -39,7 +40,7 @@ namespace Microcharts
         private float AbsoluteMaximum => this.Entries?.Select(x => x.Value).Concat(new[] { this.MaxValue, this.MinValue, this.InternalMinValue ?? 0 }).Max(x => Math.Abs(x)) ?? 0;
 
         private float ValueRange => this.AbsoluteMaximum - this.AbsoluteMinimum;
-
+        private IList<SKPath> paths;
         #endregion
 
         #region Methods
@@ -54,6 +55,7 @@ namespace Microcharts
                 IsAntialias = true,
             })
             {
+                
                 canvas.DrawCircle(cx, cy, radius, paint);
             }
         }
@@ -73,6 +75,8 @@ namespace Microcharts
                 {
                     var sweepAngle = this.AnimationProgress * 360 * (Math.Abs(entry.Value) - this.AbsoluteMinimum) / this.ValueRange;
                     path.AddArc(SKRect.Create(cx - radius, cy - radius, 2 * radius, 2 * radius), this.StartAngle, sweepAngle);
+                    path.AddArc(SKRect.Create(cx - radius, cy - radius, 2 * radius, 2 * radius), this.StartAngle, sweepAngle);
+                    paths.Add(path);
                     canvas.DrawPath(path, paint);
                 }
             }
@@ -90,7 +94,7 @@ namespace Microcharts
                 var cy = height / 2;
                 var lineWidth = (this.LineSize < 0) ? (radius / ((this.Entries.Count() + 1) * 2)) : this.LineSize;
                 var radiusSpace = lineWidth * 2;
-
+                paths = new List<SKPath>();
                 for (int i = 0; i < this.Entries.Count(); i++)
                 {
                     var entry = this.Entries.ElementAt(i);
@@ -110,6 +114,24 @@ namespace Microcharts
 
             this.DrawCaptionElements(canvas, width, height, rightValues, false);
             this.DrawCaptionElements(canvas, width, height, leftValues, true);
+        }
+
+
+        public override SKPoint PointToMarkerView(SKPoint point)
+        {
+            foreach (var item in this.paths)
+            {
+                if (this.PointInPath(point,item))
+                {
+                    this.index = this.paths.IndexOf(item);
+                    this.pointMarkerView = new SKPoint(item.Bounds.MidX, item.Bounds.MidY);
+                    return point;
+                }
+            }
+
+
+            this.index = -1;
+            return default(SKPoint);
         }
 
         #endregion

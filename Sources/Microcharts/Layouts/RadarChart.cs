@@ -4,6 +4,7 @@
 namespace Microcharts
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using SkiaSharp;
 
@@ -57,7 +58,7 @@ namespace Microcharts
         private float AbsoluteMaximum => this.Entries.Select(x => x.Value).Concat(new[] { this.MaxValue, this.MinValue, this.InternalMinValue ?? 0 }).Max(x => Math.Abs(x));
 
         private float ValueRange => this.AbsoluteMaximum - this.AbsoluteMinimum;
-
+        protected IList<SKRect> rects;
         #endregion
 
         #region Methods
@@ -104,7 +105,7 @@ namespace Microcharts
                 var nextPoint = this.GetPoint(nextEntry.Value * this.AnimationProgress, center, nextAngle, radius);
 
                 this.DrawBorder(canvas, center, radius);
-
+                this.rects = new List<SKRect>();
                 using (var clip = new SKPath())
                 {
                     clip.AddCircle(center.X, center.Y, radius);
@@ -147,6 +148,8 @@ namespace Microcharts
                         })
                         {
                             var amount = Math.Abs(entry.Value - this.AbsoluteMinimum) / this.ValueRange;
+                            var rect = SKRect.Create(point.X - (this.PointSize / 2), point.Y - (this.PointSize / 2), this.PointSize, this.PointSize);
+                            this.rects.Add(rect);
                             canvas.DrawCircle(center.X, center.Y, radius * amount, paint);
                         }
 
@@ -175,6 +178,7 @@ namespace Microcharts
                     }
                 }
             }
+            this.DrawMarkerView(canvas);
         }
 
         /// <summary>
@@ -206,7 +210,21 @@ namespace Microcharts
                 canvas.DrawCircle(center.X, center.Y, radius, paint);
             }
         }
-
+        public override SKPoint PointToMarkerView(SKPoint point)
+        {
+            foreach (var item in this.rects)
+            {
+                if (item.Contains(point))
+                {
+                    this.index = this.rects.IndexOf(item);
+                    this.pointMarkerView = new SKPoint(item.MidX, item.MidY);
+                    return this.pointMarkerView;
+                }
+            }
+            this.index = -1;
+            this.pointMarkerView = default(SKPoint);
+            return this.pointMarkerView;
+        }
         #endregion
     }
 }

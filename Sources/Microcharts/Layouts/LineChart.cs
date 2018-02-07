@@ -70,6 +70,7 @@ namespace Microcharts
                 this.DrawPoints(canvas, points);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
                 this.DrawFooter(canvas, labels, labelSizes, points, itemSize, height, footerHeight);
+                this.DrawMarkerView(canvas);
             }
         }
 

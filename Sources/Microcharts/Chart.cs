@@ -19,6 +19,9 @@ namespace Microcharts
     public abstract class Chart : INotifyPropertyChanged
     {
         #region Fields
+        protected SKPoint pointMarkerView;
+
+        protected int index = -1;
 
         private IEnumerable<Entry> entries;
 
@@ -461,6 +464,20 @@ namespace Microcharts
             this.IsAnimating = false;
         }
 
+        public bool PointInPath(SKPoint point, SKPath polygon)
+        {
+            var points = polygon.Points;
+            int i, j, nvert = points.Count();
+            bool c = false;
+            for (i = 0, j = nvert - 1; i < nvert; j = i++)
+            {
+                float px = (points[j].X - points[i].X) * (point.Y - points[i].Y) / (points[j].Y - points[i].Y) + points[i].X;
+                if (((points[i].Y >= point.Y) != (points[j].Y >= point.Y)) && (point.X <= px))
+                    c = !c;
+            }
+
+            return c;
+        }
         private async void UpdateEntries(IEnumerable<Entry> value)
         {
             try
@@ -544,6 +561,49 @@ namespace Microcharts
             return false;
         }
 
+
+        protected virtual void DrawMarkerView(SKCanvas canvas)
+        {
+            if (this.index > -1)
+            {
+                var val = this.Entries.ToList()[this.index];
+                string textMarkerView = $"{val.Label} : {val.Value}";
+
+                // Create an SKPaint object to display the text
+                SKPaint textPaint = new SKPaint
+                {
+                    Color = SKColors.WhiteSmoke,
+                    IsAntialias = true
+                };
+                SKRect textBounds = default(SKRect);
+                textPaint.MeasureText(textMarkerView, ref textBounds);
+                SKRect frameRect = textBounds;
+                frameRect.Offset(this.pointMarkerView.X, this.pointMarkerView.Y);
+                frameRect.Inflate(10, 10);
+
+                // Create an SKPaint object to display the frame
+                SKPaint framePaint = new SKPaint
+                {
+                    Style = SKPaintStyle.Fill,
+                    StrokeWidth = 1,
+                    Color = SKColors.DarkGray,
+                    IsAntialias = true
+                };
+                canvas.DrawRoundRect(frameRect, 5, 5, framePaint);
+
+                // Inflate the frameRect and draw another
+                frameRect.Inflate(1, 1);
+                framePaint.Color = val.Color;
+                framePaint.Style = SKPaintStyle.Stroke;
+                canvas.DrawRoundRect(frameRect, 5, 5, framePaint);
+                canvas.DrawText(textMarkerView, this.pointMarkerView.X, this.pointMarkerView.Y, textPaint);
+            }
+        }
+
+        public virtual SKPoint PointToMarkerView(SKPoint point)
+        {
+            throw new System.NotImplementedException();
+        }
         #endregion
 
         #endregion

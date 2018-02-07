@@ -73,6 +73,7 @@ namespace Microcharts
             get => this.valueLabelOrientation;
             set => this.valueLabelOrientation = (value == Orientation.Default) ? Orientation.Vertical : value;
         }
+        protected IList<SKRect> rects;
 
         private float ValueRange => this.MaxValue - this.MinValue;
 
@@ -100,6 +101,8 @@ namespace Microcharts
                 this.DrawPoints(canvas, points);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
                 this.DrawFooter(canvas, labels, labelSizes, points, itemSize, height, footerHeight);
+                this.DrawMarkerView(canvas);
+
             }
         }
 
@@ -174,10 +177,13 @@ namespace Microcharts
         {
             if (points.Length > 0 && PointMode != PointMode.None)
             {
+                this.rects = new List<SKRect>();
                 for (int i = 0; i < points.Length; i++)
                 {
                     var entry = this.Entries.ElementAt(i);
                     var point = points[i];
+                    var rect = SKRect.Create(point.X - (this.PointSize / 2), point.Y - (this.PointSize / 2), this.PointSize, this.PointSize);
+                    this.rects.Add(rect);
                     canvas.DrawPoint(point, entry.Color, this.PointSize, this.PointMode);
                 }
             }
@@ -325,6 +331,22 @@ namespace Microcharts
                     return bounds;
                 }).ToArray();
             }
+        }
+
+        public override SKPoint PointToMarkerView(SKPoint point)
+        {
+            foreach (var item in this.rects)
+            {
+                if (item.Contains(point))
+                {
+                    this.index = this.rects.IndexOf(item);
+                    this.pointMarkerView = new SKPoint(item.MidX, item.MidY);
+                    return this.pointMarkerView;
+                }
+            }
+            this.index = -1;
+            this.pointMarkerView = default(SKPoint);
+            return this.pointMarkerView;
         }
 
         #endregion

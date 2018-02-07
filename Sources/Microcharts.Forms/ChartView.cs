@@ -74,8 +74,20 @@ namespace Microcharts.Forms
             {
                 e.Surface.Canvas.Clear(SKColors.Transparent);
             }
+            this.EnableTouchEvents = true;
         }
 
+        protected override void OnTouch(SKTouchEventArgs e)
+        {
+            base.OnTouch(e);
+
+
+            System.Diagnostics.Debug.WriteLine("OnTouch  {0}", e.Location);
+            var r = chart.PointToMarkerView(e.Location);
+            System.Diagnostics.Debug.WriteLine("Points {0}", r);
+
+            InvalidateSurface();
+        }
         #endregion
     }
 }
