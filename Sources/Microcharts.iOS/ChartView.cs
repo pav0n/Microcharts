@@ -1,25 +1,43 @@
-﻿using SkiaSharp;
+﻿using System;
+using Foundation;
+using SkiaSharp;
 #if __IOS__
 namespace Microcharts.iOS
 {
-    using UIKit;
-    using SkiaSharp.Views.iOS;
-    using System.Diagnostics;
-    using System.Linq;
+using UIKit;
+using SkiaSharp.Views.iOS;
+using System.Diagnostics;
 #else
 namespace Microcharts.macOS
 {
     using SkiaSharp.Views.Mac;
 #endif
 
+    [Register("ChartView")]
     public class ChartView : SKCanvasView
     {
         #region Constructors
 
         public ChartView()
         {
+            Initialize();
+        }
+
+        [Preserve]
+        public ChartView(IntPtr handle) : base(handle)
+        {
+        }
+
+        public override void AwakeFromNib()
+        {
+            base.AwakeFromNib();
+            Initialize();
+        }
+
+        private void Initialize()
+        {
 #if __IOS__
-            this.BackgroundColor = UIColor.Clear;
+this.BackgroundColor = UIColor.Clear;
 #endif
             this.PaintSurface += OnPaintCanvas;
         }
@@ -76,31 +94,7 @@ namespace Microcharts.macOS
             {
                 e.Surface.Canvas.Clear(SKColors.Transparent);
             }
-            this.UserInteractionEnabled = true;
         }
-
-        public override void TouchesBegan(Foundation.NSSet touches, UIEvent evt)
-        {
-            base.TouchesBegan(touches, evt);
-            foreach (UITouch touch in touches)
-            {
-                var position = touch.LocationInView(this).ToSKPoint();
-                chart.PointToMarkerView(position);
-            }
-            //var r = chart.PointToMarkerView(e.Location);
-            /*var touch = touches.ToArray<UITouch>().First();
-            var r = chart.PointToMarkerView(l.ToSKPoint());
-            this.InvalidateChart();*/
-
-        }
-        private float Density => 2;
-
-        private SKPoint ToPlatform(SKPoint point)
-        {
-            return new SKPoint(point.X * Density, point.Y * Density);
-        }
-
-
 
         #endregion
     }
