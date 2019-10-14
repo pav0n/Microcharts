@@ -36,6 +36,8 @@ namespace Microcharts
         /// <value>The bar area alpha.</value>
         public byte BarAreaAlpha { get; set; } = 32;
 
+        public float RoundBar { get; set; }
+
         #endregion
 
         #region Methods
@@ -111,7 +113,8 @@ namespace Microcharts
 
                         var rect = SKRect.Create(x, y, itemSize.Width, height);
                         rects.Add(rect);
-                        canvas.DrawRect(rect, paint);
+                        //canvas.DrawRect(rect, paint);
+                        canvas.DrawRoundRect(rect, RoundBar, RoundBar, paint);
                     }
                 }
             }
